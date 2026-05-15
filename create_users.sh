@@ -1,54 +1,55 @@
 #!/bin/bash
 
-# måste köras som root
-
+# Kontrollera att scriptet körs som root
 if [ "$EUID" -ne 0 ]; then
     echo "Fel: Scriptet måste köras som root."
     exit 1
 fi
 
-# minst en användare
-
+# Kontrollera att minst en användare skickas med
 if [ "$#" -lt 1 ]; then
-    echo "Användning: $0 användare1 användare 2..."
+    echo "Användning: $0 användare1 användare2 ..."
     exit 1
 fi
 
-# hämta lista på befintliga användare
-
-existing_users=$(cut -d: -f1 /etc/passwd)
-
-# loopa igenom alla argument
-
+# Loopa igenom alla användare
 for username in "$@"; do
-    # kontrollera om användaren redan finns
+
+    # Skapa användaren med hemkatalog
     useradd -m "$username"
 
-    # skapa katalogstruktur
+    # Sökväg till hemkatalog
     home_dir="/home/$username"
 
+    # Skapa undermappar
     mkdir -p "$home_dir/Documents"
     mkdir -p "$home_dir/Downloads"
     mkdir -p "$home_dir/Work"
 
-    #endast ägarrättigheter
-    chown -R "$username:$username" "$home_dir"
-    chmod -R 700 "$home_dir"
+    # Sätt ägare
+    chown "$username:$username" "$home_dir/Documents"
+    chown "$username:$username" "$home_dir/Downloads"
+    chown "$username:$username" "$home_dir/Work"
 
-    #skapa welcome.txt
+    # Endast ägaren ska ha åtkomst
+    chmod 700 "$home_dir/Documents"
+    chmod 700 "$home_dir/Downloads"
+    chmod 700 "$home_dir/Work"
+
+    # Skapa welcome.txt
     welcome_file="$home_dir/welcome.txt"
 
     echo "Välkommen $username" > "$welcome_file"
-    echo "" >>"$welcome_file"
-    echo "Andra användare i systemet:" >> "$welcome_file"
-    echo "$existing_users" >> "$welcome_file"
 
-    # sätt ägare och rättigheter på filen
+    # Lista alla andra användare
+    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$welcome_file"
+
+    # Sätt ägare och rättigheter på filen
     chown "$username:$username" "$welcome_file"
     chmod 600 "$welcome_file"
-    
-    echo "Användare $username skapad."
-done 
 
+    echo "Användare $username skapad."
+
+done
 
 echo "Klart!"
