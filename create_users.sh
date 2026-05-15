@@ -1,53 +1,64 @@
 #!/bin/bash
 
-# Kontrollera att scriptet körs som root
+# måste köras som root
+
 if [ "$EUID" -ne 0 ]; then
     echo "Fel: Scriptet måste köras som root."
     exit 1
 fi
 
-# Kontrollera att minst en användare skickas in
+# minst en användare
+
 if [ "$#" -lt 1 ]; then
-    echo "Användning: $0 användare1 användare2 ..."
+    echo "Användning: $0 användare1 användare2..."
     exit 1
 fi
 
-# Loopa igenom alla användare
+# loopa igenom alla argument
+
 for username in "$@"; do
 
-    # Skapa användare och grupp
-    useradd -m -U "$username"
+    # kontrollera om användaren redan finns
 
-    # Hemkatalog
-    home_dir="/home/$username"
+    if ! id "$username" &>/dev/null; then
+        useradd -m "$username"
+    fi
 
-    # Skapa mappar
-    mkdir "$home_dir/Documents"
-    mkdir "$home_dir/Downloads"
-    mkdir "$home_dir/Work"
+    # skapa katalogstruktur
 
-    # Sätt ägare
+    home_dir=$(eval echo "~$username")
+
+    mkdir -p "$home_dir/Documents"
+    mkdir -p "$home_dir/Downloads"
+    mkdir -p "$home_dir/Work"
+
+    # endast ägarrättigheter
+
     chown "$username:$username" "$home_dir/Documents"
     chown "$username:$username" "$home_dir/Downloads"
     chown "$username:$username" "$home_dir/Work"
 
-    # Endast ägare får läsa/skriva
     chmod 700 "$home_dir/Documents"
     chmod 700 "$home_dir/Downloads"
     chmod 700 "$home_dir/Work"
 
-    # Skapa welcome.txt
-    echo "Välkommen $username" > "$home_dir/welcome.txt"
+    # skapa welcome.txt
 
-    # Lista andra användare
-    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$home_dir/welcome.txt"
+    welcome_file="$home_dir/welcome.txt"
 
-    # Ägare och rättigheter för filen
-    chown "$username:$username" "$home_dir/welcome.txt"
-    chmod 600 "$home_dir/welcome.txt"
+    echo "Välkommen $username" > "$welcome_file"
+
+    echo "Andra användare i systemet:" >> "$welcome_file"
+
+    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$welcome_file"
+
+    # sätt ägare och rättigheter på filen
+
+    chown "$username:$username" "$welcome_file"
+    chmod 600 "$welcome_file"
+
+    echo "Användare $username skapad."
 
 done
 
 echo "Klart!"
-
-
