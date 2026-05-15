@@ -51,4 +51,4 @@ for username in "$@"; do
 done 
 
 
-echo "Klart!"
+echo "Klart."
