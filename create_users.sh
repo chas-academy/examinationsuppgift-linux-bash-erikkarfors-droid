@@ -18,46 +18,29 @@ fi
 
 for username in "$@"; do
 
-    # kontrollera om användaren redan finns
+    # skapa användare
 
-    if ! id "$username" &>/dev/null; then
-        useradd -m "$username"
-    fi
+    useradd "$username"
 
     # skapa katalogstruktur
 
-    home_dir=$(eval echo "~$username")
-
-    mkdir -p "$home_dir/Documents"
-    mkdir -p "$home_dir/Downloads"
-    mkdir -p "$home_dir/Work"
+    mkdir -p "/home/$username/Documents"
+    mkdir -p "/home/$username/Downloads"
+    mkdir -p "/home/$username/Work"
 
     # endast ägarrättigheter
 
-    chown "$username:$username" "$home_dir/Documents"
-    chown "$username:$username" "$home_dir/Downloads"
-    chown "$username:$username" "$home_dir/Work"
-
-    chmod 700 "$home_dir/Documents"
-    chmod 700 "$home_dir/Downloads"
-    chmod 700 "$home_dir/Work"
+    chmod 700 "/home/$username/Documents"
+    chmod 700 "/home/$username/Downloads"
+    chmod 700 "/home/$username/Work"
 
     # skapa welcome.txt
 
-    welcome_file="$home_dir/welcome.txt"
+    echo "Välkommen $username" > "/home/$username/welcome.txt"
 
-    echo "Välkommen $username" > "$welcome_file"
+    echo "Andra användare i systemet:" >> "/home/$username/welcome.txt"
 
-    echo "Andra användare i systemet:" >> "$welcome_file"
-
-    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$welcome_file"
-
-    # sätt ägare och rättigheter på filen
-
-    chown "$username:$username" "$welcome_file"
-    chmod 600 "$welcome_file"
-
-    echo "Användare $username skapad."
+    cut -d: -f1 /etc/passwd >> "/home/$username/welcome.txt"
 
 done
 
