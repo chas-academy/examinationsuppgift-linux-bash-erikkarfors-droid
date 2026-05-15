@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # måste köras som root
@@ -49,3 +50,4 @@ for username in "$@"; do
 done
 
 echo "Klart!"
+
