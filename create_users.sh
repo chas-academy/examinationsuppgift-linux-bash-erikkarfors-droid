@@ -1,37 +1,51 @@
 #!/bin/bash
 
-# rootkontroll
+# måste köras som root
 
-if [ $EUID -ne 0 ]; then
-    echo "Måste köras som root"
+if [ "$EUID" -ne 0 ]; then
+    echo "Fel: Scriptet måste köras som root."
     exit 1
 fi
 
-# loopa genom användare
+# minst en användare
 
-for username in "$@"
-do
+if [ "$#" -lt 1 ]; then
+    echo "Användning: $0 användare1 användare2..."
+    exit 1
+fi
+
+# loopa igenom alla argument
+
+for username in "$@"; do
 
     # skapa användare
 
     useradd -m "$username"
 
-    # skapa mappar
+    # skapa katalogstruktur
 
-    mkdir /home/"$username"/Documents
-    mkdir /home/"$username"/Downloads
-    mkdir /home/"$username"/Work
+    mkdir -p "/home/$username/Documents"
+    mkdir -p "/home/$username/Downloads"
+    mkdir -p "/home/$username/Work"
 
-    # rättigheter
+    # endast ägarrättigheter
 
-    chmod 700 /home/"$username"/Documents
-    chmod 700 /home/"$username"/Downloads
-    chmod 700 /home/"$username"/Work
+    chown "$username:$username" "/home/$username/Documents"
+    chown "$username:$username" "/home/$username/Downloads"
+    chown "$username:$username" "/home/$username/Work"
 
-    # welcome.txt
+    chmod 700 "/home/$username/Documents"
+    chmod 700 "/home/$username/Downloads"
+    chmod 700 "/home/$username/Work"
 
-    echo "Välkommen $username" > /home/"$username"/welcome.txt
+    # skapa welcome.txt
 
-    cut -d: -f1 /etc/passwd >> /home/"$username"/welcome.txt
+    echo "Välkommen $username" > "/home/$username/welcome.txt"
+
+    echo "Andra användare i systemet:" >> "/home/$username/welcome.txt"
+
+    cut -d: -f1 /etc/passwd >> "/home/$username/welcome.txt"
 
 done
+
+echo "Klart!"
