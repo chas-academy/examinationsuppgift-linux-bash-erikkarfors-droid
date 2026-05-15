@@ -34,7 +34,7 @@ for username in "$@"; do
     chmod 700 "/home/$username/Downloads"
     chmod 700 "/home/$username/Work"
 
-    # skapa welcome.txt
+    # skapa fil welcome.txt
 
     echo "Välkommen $username" > "/home/$username/welcome.txt"
 
