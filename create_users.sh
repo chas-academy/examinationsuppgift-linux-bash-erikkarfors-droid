@@ -6,7 +6,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Kontrollera att minst en användare skickas med
+# Kontrollera att minst en användare skickas in
 if [ "$#" -lt 1 ]; then
     echo "Användning: $0 användare1 användare2 ..."
     exit 1
@@ -15,41 +15,39 @@ fi
 # Loopa igenom alla användare
 for username in "$@"; do
 
-    # Skapa användaren med hemkatalog
-    useradd -m "$username"
+    # Skapa användare och grupp
+    useradd -m -U "$username"
 
-    # Sökväg till hemkatalog
+    # Hemkatalog
     home_dir="/home/$username"
 
-    # Skapa undermappar
-    mkdir -p "$home_dir/Documents"
-    mkdir -p "$home_dir/Downloads"
-    mkdir -p "$home_dir/Work"
+    # Skapa mappar
+    mkdir "$home_dir/Documents"
+    mkdir "$home_dir/Downloads"
+    mkdir "$home_dir/Work"
 
     # Sätt ägare
     chown "$username:$username" "$home_dir/Documents"
     chown "$username:$username" "$home_dir/Downloads"
     chown "$username:$username" "$home_dir/Work"
 
-    # Endast ägaren ska ha åtkomst
+    # Endast ägare får läsa/skriva
     chmod 700 "$home_dir/Documents"
     chmod 700 "$home_dir/Downloads"
     chmod 700 "$home_dir/Work"
 
     # Skapa welcome.txt
-    welcome_file="$home_dir/welcome.txt"
+    echo "Välkommen $username" > "$home_dir/welcome.txt"
 
-    echo "Välkommen $username" > "$welcome_file"
+    # Lista andra användare
+    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$home_dir/welcome.txt"
 
-    # Lista alla andra användare
-    cut -d: -f1 /etc/passwd | grep -v "^$username$" >> "$welcome_file"
-
-    # Sätt ägare och rättigheter på filen
-    chown "$username:$username" "$welcome_file"
-    chmod 600 "$welcome_file"
-
-    echo "Användare $username skapad."
+    # Ägare och rättigheter för filen
+    chown "$username:$username" "$home_dir/welcome.txt"
+    chmod 600 "$home_dir/welcome.txt"
 
 done
 
 echo "Klart!"
+
+
