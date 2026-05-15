@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # måste köras som root
@@ -15,7 +14,7 @@ if [ "$#" -lt 1 ]; then
     exit 1
 fi
 
-# loopa igenom alla argument
+# skapa alla användare först
 
 for username in "$@"; do
 
@@ -39,6 +38,12 @@ for username in "$@"; do
     chmod 700 "/home/$username/Downloads"
     chmod 700 "/home/$username/Work"
 
+done
+
+# skapa welcome.txt efter att ALLA användare finns
+
+for username in "$@"; do
+
     # skapa welcome.txt
 
     echo "Välkommen $username" > "/home/$username/welcome.txt"
@@ -50,4 +55,3 @@ for username in "$@"; do
 done
 
 echo "Klart!"
-
